@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EmployeePerformanceReview.Application.UseCases
+namespace EmployeePerformanceReview.InfraStructure.Data
 {
-    class CreateReviewUseCase
+    public interface IDbInitializer
     {
+        void Initialize();
     }
 }

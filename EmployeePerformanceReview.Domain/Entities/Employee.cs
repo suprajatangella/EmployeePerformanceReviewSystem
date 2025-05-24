@@ -19,6 +19,12 @@ namespace EmployeePerformanceReview.Domain.Entities
         public bool IsActive { get; set; }
         public ICollection<Review> Reviews { get; set; }
         public ICollection<Goal> Goals { get; set; }
-        public ICollection<Feedback> Feedbacks { get; set; } 
+        public ICollection<Feedback> Feedbacks { get; set; }
+        public string UserId { get; set; }
+        public User User { get; set; }
+        public DateTime? CreatedDate { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedDate { get; set; }
+        public string? CreatedBy { get; set; }            // User who created the follow-up
+        public string? UpdatedBy { get; set; }
     }
 }

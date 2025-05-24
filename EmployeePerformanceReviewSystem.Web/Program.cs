@@ -1,5 +1,19 @@
+using EmployeePerformanceReview.Domain.Entities;
+using EmployeePerformanceReview.Infrastructure.Data;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddDbContext<ApplicationDbContext>(option => option.UseSqlServer(builder.Configuration.GetConnectionString("DefualtConnections"), b => b.MigrationsAssembly("EmployeePerformanceReview.Infrastructure")), ServiceLifetime.Scoped
+   );
+//builder.Services.AddDefaultIdentity<User>().AddRoles<IdentityRole>()
+//    .AddEntityFrameworkStores<ApplicationDbContext>();
+
+builder.Services.AddIdentity<User, IdentityRole>()
+    .AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders(); // Optional: Add token providers for password reset, email confirmation, etc.
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 

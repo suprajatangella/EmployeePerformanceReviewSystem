@@ -15,5 +15,11 @@ namespace EmployeePerformanceReview.Domain.Entities
         public DateTime SignedDate { get; set; }
 
         public Review Review { get; set; }
+        public string UserId { get; set; }
+        public User User { get; set; }
+        public DateTime? CreatedDate { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedDate { get; set; }
+        public string? CreatedBy { get; set; }            // User who created the follow-up
+        public string? UpdatedBy { get; set; }
     }
 }

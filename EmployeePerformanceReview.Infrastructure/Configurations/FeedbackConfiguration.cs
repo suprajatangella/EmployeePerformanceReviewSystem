@@ -26,6 +26,11 @@ namespace EmployeePerformanceReview.Infrastructure.Configurations
                    .WithMany(e => e.Feedbacks) // Assumes Employee has ICollection<Feedback> Feedbacks
                    .HasForeignKey(f => f.EmployeeId)
                    .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne(g => g.User)
+               .WithMany(u => u.Feedbacks)
+               .HasForeignKey(g => g.UserId)
+               .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

@@ -22,17 +22,22 @@ namespace EmployeePerformanceReview.Infrastructure.Configurations
             builder.HasMany(e => e.Reviews)
                 .WithOne(r => r.Employee)
                 .HasForeignKey(r => r.EmployeeId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             builder.HasMany(e => e.Goals)
                 .WithOne(g => g.Employee)
                 .HasForeignKey(g => g.EmployeeId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             builder.HasMany(e => e.Feedbacks)
        .WithOne(f => f.Employee)
        .HasForeignKey(f => f.EmployeeId)
-       .OnDelete(DeleteBehavior.Cascade);
+       .OnDelete(DeleteBehavior.NoAction);
+
+            builder.HasOne(e => e.User)
+                .WithMany(u => u.Employees)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

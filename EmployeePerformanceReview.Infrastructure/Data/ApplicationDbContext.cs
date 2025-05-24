@@ -1,6 +1,8 @@
 ﻿using EmployeePerformanceReview.Domain.Entities;
 using EmployeePerformanceReview.Domain.ValueObjects;
 using EmployeePerformanceReview.Infrastructure.Configurations;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -10,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace EmployeePerformanceReview.Infrastructure.Data
 {
-    public class ApplicationDbContext : DbContext
+    public class ApplicationDbContext : IdentityDbContext<User>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -23,12 +25,20 @@ namespace EmployeePerformanceReview.Infrastructure.Data
         public DbSet<Feedback> Feedbacks { get; set; }
         public DbSet<Goal> Goals { get; set; }
         public DbSet<Signature> Signatures { get; set; }
+        public DbSet<User> Users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<IdentityUserLogin<string>>()
+                .HasKey(login => new { login.LoginProvider, login.ProviderKey }); // Composite key
+
             modelBuilder.ApplyConfiguration(new EmployeeConfiguration());
             modelBuilder.ApplyConfiguration(new ReviewConfiguration());
+            modelBuilder.ApplyConfiguration(new FeedbackConfiguration());
+            modelBuilder.ApplyConfiguration(new GoalConfiguration());
+            modelBuilder.ApplyConfiguration(new SignatureConfiguration());
         }
     }
 }

@@ -24,12 +24,17 @@ namespace EmployeePerformanceReview.Infrastructure.Configurations
             .HasColumnName("Score")
             .IsRequired();
 
-            builder.OwnsOne(r => r.Score, score =>
-            {
-                score.Property(s => s.Value)
-                     .HasColumnName("Score")
-                     .IsRequired();
-            });
+            //builder.OwnsOne(r => r.Score, score =>
+            //{
+            //    score.Property(s => s.Value)
+            //         .HasColumnName("Score")
+            //         .IsRequired();
+            //});
+
+            builder.HasOne(g => g.User)
+                .WithMany(u => u.Reviews)
+                .HasForeignKey(g => g.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }
