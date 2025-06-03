@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EmployeePerformanceReview.Application.UseCases.Review
+namespace EmployeePerformanceReview.Application.UseCases.Signature
 {
     public class CreateSignatureUseCase
     {

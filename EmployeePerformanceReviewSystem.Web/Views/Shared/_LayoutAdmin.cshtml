@@ -1,5 +1,6 @@
-﻿<!DOCTYPE html>
-<html lang="en">
+﻿@using System.Security.Claims
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -32,41 +33,61 @@
                 <div class="collapse navbar-collapse" id="mainMenu">
                     <ul class="navbar-nav ml-auto text-uppercase f1">
                         <li>
-                            <a asp-controller="Home" asp-action="Index" class="active active-first">Home</a>
+                            <a asp-controller="Employee" asp-action="Index" class="active active-first">Employee</a>
                         </li>
                         <li>
-                            <a asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a asp-controller="Feedback" asp-action="Index">Feedback</a>
                         </li>
+                        <li>
+                            <a asp-controller="Goal" asp-action="Index">Goal</a>
+                        </li>
+                        <li>
+                            <a asp-controller="Review" asp-action="Index">Review</a>
+                        </li>
+                        <li>
+                            <a asp-controller="Signature" asp-action="Index">Signature</a>
+                        </li>
+                       
                     </ul>
                     <ul class="navbar-nav ml-auto text-uppercase f1">
                         <li>
-                            <partial name="_LoginPartial" />
+                            <partial name="_LoginPartialAdmin" />
                         </li>
                     </ul>
                 </div>
-
+               
             </nav>
-
+            
         </div>
         <!-- /.container -->
     </header>
- 
-    <div class="container" style="background-size: cover;
-            background-position: center;
-            height: 100vh;">
-        <main role="main" class="pb-3">
+   @*  <div>
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 w-100">
+                <partial name="_Notification" />
+                @RenderBody()
+            </div>
+        </main>
+    </div> *@
+    <div class="container">
+        <main role="main">
             @RenderBody()
         </main>
     </div>
-
-    <footer class="border-top footer text-muted">
-        <div class="container text-white text-center">
-           My Practice Project
+    ﻿
+    <footer class="footer border-top text-white text-center">
+        <div class="container">
+            &copy; 2025 <a href="#">Supraja</a>. All rights reserved.
         </div>
     </footer>
+    @* jquery-ajax-unobtrusive@3.2.6 *@
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.0.1/js/bootstrap.bundle.min.js" integrity="sha512-sH8JPhKJUeA9PWk3eOcOl8U+lfZTgtBXD41q6cO/slwxGHCxKcW45K4oPCUhHG7NMB4mbKEddVmPuTXtpbCbFA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="//cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js" asp-append-version="true"></script>
+    @*  <script src="~/js/jquery.unobtrusive-ajax.min.js"></script> *@
+    <script src="~/js/apexcharts.js"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

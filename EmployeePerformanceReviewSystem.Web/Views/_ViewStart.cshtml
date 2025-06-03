@@ -1,3 +1,12 @@
 ﻿@{
-    Layout = "_Layout";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    if (User != null && User.Identity.IsAuthenticated)
+    {
+        if (User.IsInRole(Roles.Admin))
+        {
+            // You can set a different layout for admin if needed
+            Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+        }
+    }
 }

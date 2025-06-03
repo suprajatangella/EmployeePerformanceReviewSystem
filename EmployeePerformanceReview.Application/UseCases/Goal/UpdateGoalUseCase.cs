@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace EmployeePerformanceReview.Application.UseCases.Goal
 {
-    internal class UpdateGoalUseCase
+    public class UpdateGoalUseCase
     {
         private readonly IUnitOfWork _unitOfWork;
 

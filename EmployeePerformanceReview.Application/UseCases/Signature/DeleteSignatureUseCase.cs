@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EmployeePerformanceReview.Application.UseCases.Employee
+namespace EmployeePerformanceReview.Application.UseCases.Signature
 {
     public class DeleteSignatureUseCase
     {

@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EmployeePerformanceReview.Common\EmployeePerformanceReview.Common.csproj" />
+    <ProjectReference Include="..\EmployeePerformanceReview.Domain\EmployeePerformanceReview.Domain.csproj" />
     <ProjectReference Include="..\EmployeePerformanceReview.Infrastructure\EmployeePerformanceReview.Infrastructure.csproj" />
   </ItemGroup>
 

@@ -1,0 +1,34 @@
+﻿@using Microsoft.AspNetCore.Identity
+
+@inject SignInManager<User> SignInManager
+@inject UserManager<User> UserManager
+@{
+    var user = await UserManager.GetUserAsync(User);
+    var profileImage = user?.ProfilePictureUrl ?? "/profileimg/default-avatar-men.jpg";
+}
+<ul class="navbar-nav d-flex justify-content-end" style="width: 10rem">
+    @if(user is null || !SignInManager.IsSignedIn(User))
+    {
+        <li class="nav-item">
+            <a class="nav-link" asp-controller="Account" asp-action="Login">Login</a>
+        </li>
+        <li>
+            <a asp-controller="Account" asp-action="Register" class="nav-link">Register</a>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+               data-bs-toggle="dropdown" aria-expanded="false">
+                Hello @UserManager.GetUserName(User)
+            </a>
+            <img src="@Url.Content("~" + profileImage)" alt="Profile Avatar" class="rounded-circle" width="70" height="70" />
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <a class="nav-link text-center" asp-controller="Account" asp-action="Logout">Logout</a>
+            </ul>
+        </li>
+    }
+)
+    
+</ul>
