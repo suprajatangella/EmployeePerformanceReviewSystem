@@ -198,4 +198,10 @@ body {
     }
 
     /*header ends*/
+    .bg-heading {
+        background: #2d2d7f !important;
+    }
+    .bg-button {
+        background: #2d2d7f !important;
+    }
 }
