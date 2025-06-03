@@ -1,9 +1,12 @@
-using System.Diagnostics;
+using EmployeePerformanceReview.Common.Constants;
 using EmployeePerformanceReviewSystem.Web.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 
 namespace EmployeePerformanceReviewSystem.Web.Controllers
 {
+    [Authorize(Roles = Roles.Admin)]
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;

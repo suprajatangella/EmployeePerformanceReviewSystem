@@ -1,9 +1,11 @@
 ﻿using EmployeePerformanceReview.Application.UseCases.Employee;
 using EmployeePerformanceReview.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EmployeePerformanceReviewSystem.Web.Controllers
 {
+    [Authorize]
     public class EmployeeController : Controller
     {
         private readonly CreateEmployeeUseCase _createEmployeeUseCase;

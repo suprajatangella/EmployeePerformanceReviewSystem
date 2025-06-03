@@ -1,9 +1,11 @@
 ﻿using EmployeePerformanceReview.Application.UseCases.Signature;
 using EmployeePerformanceReview.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EmployeePerformanceSignatureSystem.Web.Controllers
 {
+    [Authorize]
     public class SignatureController : Controller
     {
         private readonly CreateSignatureUseCase _createSignatureUseCase;

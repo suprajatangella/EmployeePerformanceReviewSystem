@@ -1,9 +1,11 @@
 ﻿using EmployeePerformanceReview.Application.UseCases.Goal;
 using EmployeePerformanceReview.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EmployeePerformanceReviewSystem.Web.Controllers
 {
+    [Authorize]
     public class GoalController : Controller
     {
         private readonly CreateGoalUseCase _createGoalUseCase;

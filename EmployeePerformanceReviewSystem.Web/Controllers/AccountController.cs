@@ -1,13 +1,17 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using EmployeePerformanceReview.Common.Constants;
+using EmployeePerformanceReview.Common.Helpers;
+using EmployeePerformanceReview.Domain.Entities;
+using EmployeePerformanceReview.Infrastructure.Data;
+using EmployeePerformanceReviewSystem.Web.ViewModels;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using Microsoft.EntityFrameworkCore;
-using EmployeePerformanceReview.Infrastructure.Data;
-using EmployeePerformanceReview.Domain.Entities;
-using EmployeePerformanceReviewSystem.Web.ViewModels;
-using EmployeePerformanceReview.Common.Helpers;
-using EmployeePerformanceReview.Common.Constants;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace EmployeePerformanceReviewSystem.Web.Controllers
 {
@@ -18,13 +22,15 @@ namespace EmployeePerformanceReviewSystem.Web.Controllers
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IConfiguration _config;
         //private readonly IEmailService _emailService;
         public AccountController(
             UserManager<User> userManager,
             RoleManager<IdentityRole> roleManager,
             SignInManager<User> signInManager,
             ApplicationDbContext context,
-            IWebHostEnvironment webHostEnvironment)
+            IWebHostEnvironment webHostEnvironment,
+            IConfiguration config)
         //,
         //IEmailService emailService)
         {
@@ -33,6 +39,7 @@ namespace EmployeePerformanceReviewSystem.Web.Controllers
             _signInManager = signInManager;
             _context = context;
             _webHostEnvironment = webHostEnvironment;
+            _config = config;
             //_emailService = emailService;
         }
         public IActionResult Login(string returnUrl = null)
@@ -51,6 +58,7 @@ namespace EmployeePerformanceReviewSystem.Web.Controllers
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
+            HttpContext.Response.Cookies.Delete("JWToken"); // Clear the JWT token cookie
             return RedirectToAction("Login", "Account");
         }
 
@@ -168,6 +176,15 @@ namespace EmployeePerformanceReviewSystem.Web.Controllers
                 {
                     // Get the currently logged-in user
                     var user = await _userManager.FindByEmailAsync(loginVM.Email);
+                    var userRoles = await _userManager.GetRolesAsync(user);
+
+                    var token = GenerateJwtToken(user.UserName, userRoles[0].ToString());
+
+                    var handler = new JwtSecurityTokenHandler();
+                    var jwtToken = handler.ReadJwtToken(token);
+                    //var userRole = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
+                    // return Ok(new { token });
+
                     // List of roles to validate against
                     var validRoles = new List<string> { Roles.Admin, Roles.HR, Roles.Manager, Roles.Reviewer, Roles.Employee};
                     
@@ -181,6 +198,13 @@ namespace EmployeePerformanceReviewSystem.Web.Controllers
                     {
                         if (await _userManager.IsInRoleAsync(user, role))
                         {
+                            HttpContext.Response.Cookies.Append("JWToken", token, new CookieOptions
+                            {
+                                HttpOnly = true,
+                                Secure = true,
+                                SameSite = SameSiteMode.Strict,
+                                Expires = DateTimeOffset.Now.AddMinutes(60)
+                            });
                             // If the user has a valid role, redirect to the home page
                             return RedirectToAction("Index", "Home");
                         }
@@ -194,6 +218,28 @@ namespace EmployeePerformanceReviewSystem.Web.Controllers
             }
 
             return View(loginVM);
+        }
+
+        private string GenerateJwtToken(string username, string role)
+        {
+            var jwtSettings = _config.GetSection("JwtSettings");
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var claims = new[]
+            {
+                new Claim(ClaimTypes.Name, username),
+                new Claim(ClaimTypes.Role, role) // Add role to token
+            };
+
+            var token = new JwtSecurityToken(
+                issuer: jwtSettings["Issuer"],
+                audience: jwtSettings["Audience"],
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(Convert.ToDouble(jwtSettings["ExpiryMinutes"])),
+                signingCredentials: creds);
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
         [HttpPost]
