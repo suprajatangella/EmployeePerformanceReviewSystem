@@ -1,20 +1,54 @@
 using EmployeePerformanceReview.Domain.Entities;
 using EmployeePerformanceReview.Infrastructure.Data;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using EmployeePerformanceReviewSystem.Web.Middlewares;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Serilog;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add Serilog configuration
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.File("Logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .Enrich.FromLogContext()
+    .CreateLogger();
+
+builder.Host.UseSerilog();
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Account/Login";
+    options.AccessDeniedPath = "/Account/AccessDenied";
+});
+
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultScheme = "SmartScheme";
 })
-.AddJwtBearer(options =>
+.AddPolicyScheme("SmartScheme", "Choose Scheme", options =>
+{
+    options.ForwardDefaultSelector = context =>
+    {
+        // Use JWT for APIs, cookie for MVC
+        var isApi = context.Request.Path.StartsWithSegments("/api");
+        return isApi ? JwtBearerDefaults.AuthenticationScheme : CookieAuthenticationDefaults.AuthenticationScheme;
+    };
+})
+.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+{
+    options.Cookie.Name = "JWToken";
+    options.LoginPath = "/Account/Login";
+    options.AccessDeniedPath = "/Account/AccessDenied";
+    options.SlidingExpiration = true;
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+})
+.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
 {
     var jwtSettings = builder.Configuration.GetSection("JwtSettings");
     options.TokenValidationParameters = new TokenValidationParameters
@@ -28,21 +62,8 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(jwtSettings["Key"]))
     };
-
-    // This reads token from cookie instead of default header
-    options.Events = new JwtBearerEvents
-    {
-        OnMessageReceived = context =>
-        {
-            var token = context.HttpContext.Request.Cookies["JWToken"];
-            if (!string.IsNullOrEmpty(token))
-            {
-                context.Token = token;
-            }
-            return Task.CompletedTask;
-        }
-    };
 });
+
 
 builder.Services.AddDbContext<ApplicationDbContext>(option => option.UseSqlServer(builder.Configuration.GetConnectionString("DefualtConnections"), b => b.MigrationsAssembly("EmployeePerformanceReview.Infrastructure")), ServiceLifetime.Scoped
    );
@@ -58,7 +79,7 @@ builder.Services.AddControllersWithViews();
 var app = builder.Build();
 
 app.UseStatusCodePagesWithReExecute("/Account/AccessDenied");
-
+app.UseStaticFiles();
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -70,9 +91,12 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
-app.UseAuthentication();
+app.UseMiddleware<ErrorHandlingMiddleware>();   // should be first
+app.UseMiddleware<LoggingMiddleware>();
+app.UseAuthentication();                        // if using authentication
+app.UseMiddleware<SecurityMiddleware>();
 app.UseAuthorization();
-
+app.UseMiddleware<RoleAuthorizationMiddleware>(); // Place after UseAuthentication
 app.MapStaticAssets();
 
 app.MapControllerRoute(

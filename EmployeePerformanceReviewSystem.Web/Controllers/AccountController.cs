@@ -3,6 +3,7 @@ using EmployeePerformanceReview.Common.Helpers;
 using EmployeePerformanceReview.Domain.Entities;
 using EmployeePerformanceReview.Infrastructure.Data;
 using EmployeePerformanceReviewSystem.Web.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -42,10 +43,14 @@ namespace EmployeePerformanceReviewSystem.Web.Controllers
             _config = config;
             //_emailService = emailService;
         }
+        [AllowAnonymous]
         public IActionResult Login(string returnUrl = null)
         {
 
-            returnUrl ??= Url.Content("~/");
+            if (string.IsNullOrEmpty(returnUrl) || returnUrl.Contains("/Account/Login"))
+            {
+                returnUrl = Url.Content("~/");
+            }
 
             LoginVM loginVM = new()
             {
@@ -63,6 +68,10 @@ namespace EmployeePerformanceReviewSystem.Web.Controllers
         }
 
         public IActionResult AccessDenied()
+        {
+            return View();
+        }
+        public IActionResult UnAuthorized()
         {
             return View();
         }
