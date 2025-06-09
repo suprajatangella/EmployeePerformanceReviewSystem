@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -16,6 +17,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace EmployeePerformanceReviewSystem.Web.Controllers
 {
+    [EnableRateLimiting("fixed")]
     public class AccountController : Controller
     {
         private readonly UserManager<User> _userManager;
@@ -187,10 +189,10 @@ namespace EmployeePerformanceReviewSystem.Web.Controllers
                     var user = await _userManager.FindByEmailAsync(loginVM.Email);
                     var userRoles = await _userManager.GetRolesAsync(user);
 
-                    var token = GenerateJwtToken(user.UserName, userRoles[0].ToString());
+                    //var token = GenerateJwtToken(user.UserName, userRoles[0].ToString());
 
-                    var handler = new JwtSecurityTokenHandler();
-                    var jwtToken = handler.ReadJwtToken(token);
+                    //var handler = new JwtSecurityTokenHandler();
+                    //var jwtToken = handler.ReadJwtToken(token);
                     //var userRole = jwtToken.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
                     // return Ok(new { token });
 
@@ -207,13 +209,13 @@ namespace EmployeePerformanceReviewSystem.Web.Controllers
                     {
                         if (await _userManager.IsInRoleAsync(user, role))
                         {
-                            HttpContext.Response.Cookies.Append("JWToken", token, new CookieOptions
-                            {
-                                HttpOnly = true,
-                                Secure = true,
-                                SameSite = SameSiteMode.Strict,
-                                Expires = DateTimeOffset.Now.AddMinutes(60)
-                            });
+                            //HttpContext.Response.Cookies.Append("JWToken", token, new CookieOptions
+                            //{
+                            //    HttpOnly = true,
+                            //    Secure = true,
+                            //    SameSite = SameSiteMode.Strict,
+                            //    Expires = DateTimeOffset.Now.AddMinutes(60)
+                            //});
                             // If the user has a valid role, redirect to the home page
                             return RedirectToAction("Index", "Home");
                         }
@@ -354,6 +356,10 @@ namespace EmployeePerformanceReviewSystem.Web.Controllers
             var body = $"Hello {name},<br><br>Your password has been updated successfully. If you didn't request this change, please contact support immediately.<br><br>Regards,<br>Expense Management Team";
 
             //_emailService.SendEmailAsync(email, subject, body);
+        }
+        public IActionResult RateLimitExceeded()
+        {
+            return View();
         }
     }
 }

@@ -1,54 +1,54 @@
-﻿using EmployeePerformanceReview.Application.UseCases.Review;
+﻿using EmployeePerformanceReview.Application.UseCases.Employee;
 using EmployeePerformanceReview.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace EmployeePerformanceReviewSystem.Web.Controllers
+namespace EmployeePerformanceEmployeeSystem.Web.Controllers
 {
     [Authorize]
-    public class ReviewController : Controller
+    public class EmployeeController : Controller
     {
-        private readonly CreateReviewUseCase _createReviewUseCase;
-        private readonly UpdateReviewUseCase _updateReviewUseCase;
-        private readonly DeleteReviewUseCase _deleteReviewUseCase;
-        private readonly GetAllReviewUseCase _getAllReviewUseCase;
+        private readonly CreateEmployeeUseCase _createEmployeeUseCase;
+        private readonly UpdateEmployeeUseCase _updateEmployeeUseCase;
+        private readonly DeleteEmployeeUseCase _deleteEmployeeUseCase;
+        private readonly GetAllEmployeeUseCase _getAllEmployeeUseCase;
 
-        public ReviewController(
-            CreateReviewUseCase createReviewUseCase,
-            UpdateReviewUseCase updateReviewUseCase,
-            DeleteReviewUseCase deleteReviewUseCase,
-            GetAllReviewUseCase getAllReviewUseCase)
+        public EmployeeController(
+            CreateEmployeeUseCase createEmployeeUseCase,
+            UpdateEmployeeUseCase updateEmployeeUseCase,
+            DeleteEmployeeUseCase deleteEmployeeUseCase,
+            GetAllEmployeeUseCase getAllEmployeeUseCase)
         {
-            _createReviewUseCase = createReviewUseCase;
-            _updateReviewUseCase = updateReviewUseCase;
-            _deleteReviewUseCase = deleteReviewUseCase;
-            _getAllReviewUseCase = getAllReviewUseCase;
+            _createEmployeeUseCase = createEmployeeUseCase;
+            _updateEmployeeUseCase = updateEmployeeUseCase;
+            _deleteEmployeeUseCase = deleteEmployeeUseCase;
+            _getAllEmployeeUseCase = getAllEmployeeUseCase;
         }
 
-        public async Task<IActionResult> Create(Review review)
+        public async Task<IActionResult> Create(Employee Employee)
         {
-            if (review == null)
-                return BadRequest("Review cannot be null.");
+            if (Employee == null)
+                return BadRequest("Employee cannot be null.");
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
             else
             {
-                await _createReviewUseCase.ExecuteAsync(review);
+                await _createEmployeeUseCase.ExecuteAsync(Employee);
                 return RedirectToAction(nameof(Index));
             }
         }
 
-        public async Task<IActionResult> Update(Guid id, Review review)
+        public async Task<IActionResult> Update(Guid id, Employee Employee)
         {
-            if (id != review.Id)
-                return BadRequest("Review ID mismatch.");
-            if (review == null)
-                return BadRequest("Review cannot be null.");
+            if (id != Employee.Id)
+                return BadRequest("Employee ID mismatch.");
+            if (Employee == null)
+                return BadRequest("Employee cannot be null.");
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
             else
             {
-                await _updateReviewUseCase.ExecuteAsync(review);
+                await _updateEmployeeUseCase.ExecuteAsync(Employee);
                 return RedirectToAction(nameof(Index));
             }
         }
@@ -56,17 +56,17 @@ namespace EmployeePerformanceReviewSystem.Web.Controllers
         public async Task<IActionResult> Delete(Guid id)
         {
             if (id == Guid.Empty)
-                return BadRequest("Invalid review ID.");
+                return BadRequest("Invalid Employee ID.");
             else
             {
-                var result = await _deleteReviewUseCase.ExecuteAsync(id);
+                var result = await _deleteEmployeeUseCase.ExecuteAsync(id);
                 return RedirectToAction(nameof(Index));
             }
         }
 
         public async Task<IActionResult> Index()
         {
-            var reviews = await _getAllReviewUseCase.ExecuteAsync();
+            var Employees = await _getAllEmployeeUseCase.ExecuteAsync();
             return View();
         }
     }

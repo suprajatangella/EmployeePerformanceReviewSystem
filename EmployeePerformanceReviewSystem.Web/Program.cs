@@ -5,12 +5,16 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using System.Text;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
 
 // Add Serilog configuration
 Log.Logger = new LoggerConfiguration()
@@ -21,10 +25,37 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("fixed", opt =>
+    {
+        opt.PermitLimit = 4;
+        opt.Window = TimeSpan.FromMinutes(12);
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        opt.QueueLimit = 2;
+    });
+    //options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.OnRejected = async (context, cancellationToken) =>
+    {
+        // Custom rejection handling logic
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        context.HttpContext.Response.Headers["Retry-After"] = "60";
+
+        // Optional logging
+        Log.Warning("Rate limit exceeded for IP: {IpAddress}",
+            context.HttpContext.Connection.RemoteIpAddress);
+
+        context.HttpContext.Response.Redirect("/Account/RateLimitExceeded");
+        await Task.CompletedTask;
+       
+    };
+});
+
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";
     options.AccessDeniedPath = "/Account/AccessDenied";
+    options.LogoutPath = "/Account/Logout";
 });
 
 builder.Services.AddAuthentication(options =>
@@ -45,6 +76,7 @@ builder.Services.AddAuthentication(options =>
     options.Cookie.Name = "JWToken";
     options.LoginPath = "/Account/Login";
     options.AccessDeniedPath = "/Account/AccessDenied";
+    options.LogoutPath = "/Account/Logout";
     options.SlidingExpiration = true;
     options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
 })
@@ -74,6 +106,7 @@ builder.Services.AddIdentity<User, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders(); // Optional: Add token providers for password reset, email confirmation, etc.
 // Add services to the container.
+builder.Services.AddRazorPages();  // This is required for Rate Limiting to work with Razor Pages
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
@@ -91,13 +124,28 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
+app.UseRateLimiter();
+
+app.Use(async (context, next) =>
+{
+    await next();
+
+    if (context.Response.StatusCode == StatusCodes.Status429TooManyRequests)
+    {
+        await context.Response.WriteAsync("Too many requests. Please try again later.");
+    }
+});
+
 app.UseMiddleware<ErrorHandlingMiddleware>();   // should be first
 app.UseMiddleware<LoggingMiddleware>();
 app.UseAuthentication();                        // if using authentication
 app.UseMiddleware<SecurityMiddleware>();
 app.UseAuthorization();
-app.UseMiddleware<RoleAuthorizationMiddleware>(); // Place after UseAuthentication
+// app.UseMiddleware<RoleAuthorizationMiddleware>(); // Place after UseAuthentication
 app.MapStaticAssets();
+
+app.MapRazorPages().RequireRateLimiting("fixed"); // This is required for Rate Limiting to work with Razor Pages
+app.MapDefaultControllerRoute().RequireRateLimiting("fixed"); // This is required for Rate Limiting to work with MVC controllers
 
 app.MapControllerRoute(
     name: "default",
