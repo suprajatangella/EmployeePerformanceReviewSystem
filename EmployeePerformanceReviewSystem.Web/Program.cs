@@ -14,7 +14,8 @@ using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
+// Localization services
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
 
 // Add Serilog configuration
 Log.Logger = new LoggerConfiguration()
@@ -107,9 +108,20 @@ builder.Services.AddIdentity<User, IdentityRole>()
     .AddDefaultTokenProviders(); // Optional: Add token providers for password reset, email confirmation, etc.
 // Add services to the container.
 builder.Services.AddRazorPages();  // This is required for Rate Limiting to work with Razor Pages
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddViewLocalization()
+    .AddDataAnnotationsLocalization(); 
 
 var app = builder.Build();
+
+// Supported cultures
+var supportedCultures = new[] { "en", "fr" };
+var localizationOptions = new RequestLocalizationOptions()
+    .SetDefaultCulture("en")
+    .AddSupportedCultures(supportedCultures)
+    .AddSupportedUICultures(supportedCultures);
+
+app.UseRequestLocalization(localizationOptions);
 
 app.UseStatusCodePagesWithReExecute("/Account/AccessDenied");
 app.UseStaticFiles();
